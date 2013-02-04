@@ -41,7 +41,7 @@ class RoutesRecorder(webapp2.RequestHandler):
         now_rounded = utils.roundTime(datetime.datetime.now(), roundTo=1)
         Routes(time_stamp=now_rounded, data=data).put()
 
-class RoutesHanlder(webapp2.RequestHandler):
+class RoutesHandler(webapp2.RequestHandler):
     def get(self):
         # Fetch routes data from a minute ago
         routes = None
@@ -107,6 +107,7 @@ class RecorderScheduler(webapp2.RequestHandler):
 app = webapp2.WSGIApplication([
     ('/', MainHandler),
     ('/buses', BusesHandler),
+    ('/routes', RoutesHandler),
     ('/record/routes', RoutesRecorder),
     ('/record/buses', BusesRecorder),
     ('/tasks/recorder', RecorderScheduler)

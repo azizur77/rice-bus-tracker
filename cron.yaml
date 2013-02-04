@@ -1,4 +1,4 @@
 cron:
-- description: record data from bus.rice.edu for 60 seconds, every minute
+- description: record data from bus.rice.edu for 60 seconds every minute
   url: /tasks/recorder
   schedule: every 1 minutes
