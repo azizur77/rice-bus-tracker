@@ -1,6 +1,7 @@
 """
 Utils for the app.
 """
+import datetime
 
 def roundTime(dt=None, roundTo=60):
    """Round a datetime object to any time laps in seconds

@@ -14,6 +14,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
+__author__ = 'Waseem Ahmad <waseem@rice.edu>'
+
+import datetime
 import json
 import logging
 import utils
@@ -24,12 +28,13 @@ from google.appengine.ext import db
 
 class Route(db.Model):
     time_stamp = db.DateTimeProperty()
-    data = db.StringProperty()
+    data = db.TextProperty()
 
 class RoutesRecorder(webapp2.RequestHandler):
     def get(self):
-        routes = urllib.urlopen('http://bus.rice.edu/json/routes.php').read()
-        
+        data = urllib.urlopen('http://bus.rice.edu/json/routes.php').read()
+        now_rounded = utils.roundTime(datetime.datetime.now(), roundTo=1)
+        Route(time_stamp=now_rounded, data=data).put()
 
 class MainHandler(webapp2.RequestHandler):
     def get(self):
