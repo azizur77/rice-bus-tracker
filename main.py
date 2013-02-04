@@ -25,16 +25,27 @@ import urllib
 import webapp2
 
 from google.appengine.ext import db
+from google.appengine.api import taskqueue
 
-class Route(db.Model):
+class Routes(db.Model):
+    time_stamp = db.DateTimeProperty()
+    data = db.TextProperty()
+
+class Buses(db.Model):
     time_stamp = db.DateTimeProperty()
     data = db.TextProperty()
 
 class RoutesRecorder(webapp2.RequestHandler):
-    def get(self):
+    def post(self):
         data = urllib.urlopen('http://bus.rice.edu/json/routes.php').read()
         now_rounded = utils.roundTime(datetime.datetime.now(), roundTo=1)
-        Route(time_stamp=now_rounded, data=data).put()
+        Routes(time_stamp=now_rounded, data=data).put()
+
+class BusesRecorder(webapp2.RequestHandler):
+    def post(self):
+        data = urllib.urlopen('http://bus.rice.edu/json/buses.php').read()
+        now_rounded = utils.roundTime(datetime.datetime.now(), roundTo=1)
+        Buses(time_stamp=now_rounded, data=data).put()
 
 class MainHandler(webapp2.RequestHandler):
     def get(self):
@@ -42,8 +53,22 @@ class MainHandler(webapp2.RequestHandler):
         self.response.write('There\'s not much here! Goto https://github.com/'
                             'rice-university/rice-bus-tracker')
 
+class RecorderScheduler(webapp2.RequestHandler):
+    """
+    Schedules 60 recording tasks per recorder every minute through cron job,
+    so that a record is made every second.
+    """
+    def get(self):
+        for i in range(60):
+            for url in ['/record/routes', '/record/buses']:
+                taskqueue.add(url=url,
+                              countdown=i)
+
+        logging.info('Enqueued 60 record tasks.')
 
 app = webapp2.WSGIApplication([
     ('/', MainHandler),
-    ('/record/routes', RoutesRecorder)
+    ('/record/routes', RoutesRecorder),
+    ('/record/buses', BusesRecorder),
+    ('/tasks/recorder', RecorderScheduler)
 ], debug=True)
