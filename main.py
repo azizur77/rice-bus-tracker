@@ -47,6 +47,25 @@ class BusesRecorder(webapp2.RequestHandler):
         now_rounded = utils.roundTime(datetime.datetime.now(), roundTo=1)
         Buses(time_stamp=now_rounded, data=data).put()
 
+class BusesHandler(webapp2.RequestHandler):
+    def get(self):
+        # Fetch buses data from a minute ago
+        buses = None
+        minute_ago = utils.roundTime(
+            datetime.datetime.now() - datetime.timedelta(seconds=60),
+            roundTo=1)
+        retries = 0
+        while not buses and retries < 10:
+            buses = Buses.gql('WHERE time_stamp=:1', minute_ago).get()
+            minute_ago += datetime.timedelta(seconds=1)
+            retries += 1
+
+        if buses:
+            self.response.headers['Content-Type'] = 'application/json'
+            self.response.out.write(buses.data)
+        else:
+            self.response.out.write('Couldn\'t find data. Sorry!')
+
 class MainHandler(webapp2.RequestHandler):
     def get(self):
         self.response.write('Hello curious person!')
@@ -68,6 +87,7 @@ class RecorderScheduler(webapp2.RequestHandler):
 
 app = webapp2.WSGIApplication([
     ('/', MainHandler),
+    ('/buses', BusesHandler),
     ('/record/routes', RoutesRecorder),
     ('/record/buses', BusesRecorder),
     ('/tasks/recorder', RecorderScheduler)

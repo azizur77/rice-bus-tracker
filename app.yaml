@@ -11,11 +11,11 @@ handlers:
 
 - url: /record/.*
   script: main.app
-  login: admin
+  # login: admin
 
 - url: /tasks/.*
   script: main.app
-  login: admin
+  # login: adminloca
 
 - url: .*
   script: main.app
