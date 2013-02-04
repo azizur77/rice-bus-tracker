@@ -14,12 +14,31 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import json
+import logging
+import utils
+import urllib
 import webapp2
+
+from google.appengine.ext import db
+
+class Route(db.Model):
+    time_stamp = db.DateTimeProperty()
+    data = db.StringProperty()
+
+class RoutesRecorder(webapp2.RequestHandler):
+    def get(self):
+        routes = urllib.urlopen('http://bus.rice.edu/json/routes.php').read()
+        
 
 class MainHandler(webapp2.RequestHandler):
     def get(self):
-        self.response.write('Hello world!')
+        self.response.write('Hello curious person!')
+        self.response.write('There\'s not much here! Goto https://github.com/'
+                            'rice-university/rice-bus-tracker')
+
 
 app = webapp2.WSGIApplication([
-    ('/', MainHandler)
+    ('/', MainHandler),
+    ('/record/routes', RoutesRecorder)
 ], debug=True)
