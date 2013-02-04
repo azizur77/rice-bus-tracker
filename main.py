@@ -41,6 +41,25 @@ class RoutesRecorder(webapp2.RequestHandler):
         now_rounded = utils.roundTime(datetime.datetime.now(), roundTo=1)
         Routes(time_stamp=now_rounded, data=data).put()
 
+class RoutesHanlder(webapp2.RequestHandler):
+    def get(self):
+        # Fetch routes data from a minute ago
+        routes = None
+        minute_ago = utils.roundTime(
+            datetime.datetime.now() - datetime.timedelta(seconds=60),
+            roundTo=1)
+        retries = 0
+        while not routes and retries < 10:
+            routes = Routes.gql('WHERE time_stamp=:1', minute_ago).get()
+            minute_ago += datetime.timedelta(seconds=1)
+            retries += 1
+
+        if routes:
+            self.response.headers['Content-Type'] = ' application/json'
+            self.response.out.write(routes.data)
+        else:
+            self.response.out.write('Couldn\'t find data. Sorry!')
+
 class BusesRecorder(webapp2.RequestHandler):
     def post(self):
         data = urllib.urlopen('http://bus.rice.edu/json/buses.php').read()
